@@ -725,7 +725,7 @@
 <script>
   // ── CONFIG ──────────────────────────────────────────────
   const SUPABASE_URL  = 'https://mtwkdvxhhvncqmeufswe.supabase.co';
-  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10d2tkdnhoaHZuY3FtZXVmc3dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyOTQsImV4cCI6MjA5NzQwNzI5NH0.R0Rw5_ypZCntlf8iLl2pNEVR3YdEtfl6zBaoFKOVVEE';
+  const SUPABASE_KEY  = 'YOUR_ANON_KEY_HERE';
   const WEBHOOK_URL   = 'https://christian-rojas.app.n8n.cloud/webhook/talent-mobility-agent';
 
   // ── STATE ───────────────────────────────────────────────
@@ -775,6 +775,90 @@
       emptyPos:       'Ninguna vacante coincide con tu búsqueda',
     }
   };
+
+  // ── TRANSLATION MAPS (DB values → EN display) ───────────
+  const translations = {
+    roles: {
+      'SDR Inbound':                   'Inbound SDR',
+      'SDR Outbound':                  'Outbound SDR',
+      'Senior SDR':                    'Senior SDR',
+      'Account Executive':             'Account Executive',
+      'Senior Account Executive':      'Senior Account Executive',
+      'Enterprise Account Executive':  'Enterprise Account Executive',
+      'CS Manager':                    'CS Manager',
+      'Senior CS Manager':             'Senior CS Manager',
+      'CS Renewals':                   'CS Renewals',
+      'Onboarding Specialist':         'Onboarding Specialist',
+      'Tech Support L2':               'Tech Support L2',
+      'Tech Support L3':               'Tech Support L3',
+      'Team Lead SDR':                 'SDR Team Lead',
+      'Team Lead CS':                  'CS Team Lead',
+      'RevOps Analyst':                'RevOps Analyst',
+      'Sales Enablement Specialist':   'Sales Enablement Specialist',
+    },
+    performance: {
+      'Excepcional':           'Exceptional',
+      'Alto Desempeño':        'High Performance',
+      'Cumple Expectativas':   'Meets Expectations',
+      'En Desarrollo':         'Developing',
+      'Bajo Desempeño':        'Low Performance',
+      'Desempeño Excepcional': 'Exceptional',
+    },
+    potential: {
+      'Alto Potencial':      'High Potential',
+      'Potencial Moderado':  'Moderate Potential',
+      'Bajo Potencial':      'Low Potential',
+    },
+    posTitles: {
+      'Revenue Operations Manager':               'Revenue Operations Manager',
+      'Enterprise Account Executive':             'Enterprise Account Executive',
+      'Sales Enablement Lead':                    'Sales Enablement Lead',
+      'Technical Implementation Manager':         'Technical Implementation Manager',
+      'Demand Generation Specialist':             'Demand Generation Specialist',
+      'Director of Customer Success':             'Director of Customer Success',
+      'Business Development Representative Lead': 'Business Development Rep Lead',
+      'Senior Customer Success Manager':          'Senior Customer Success Manager',
+      'Product Marketing Manager':               'Product Marketing Manager',
+      'RevOps Senior Analyst':                   'RevOps Senior Analyst',
+    },
+  };
+
+  function translateRole(role) {
+    if (lang === 'es') return role;
+    return translations.roles[role] || role;
+  }
+
+  function translateNineBox(nb) {
+    if (lang === 'es' || !nb) return nb;
+    const parts = nb.split('/');
+    const perf = parts[0]?.trim() || '';
+    const pot  = parts[1]?.trim() || '';
+    const perfEN = translations.performance[perf] || perf;
+    const potEN  = translations.potential[pot]   || pot;
+    return pot ? `${perfEN} / ${potEN}` : perfEN;
+  }
+
+  function translatePosTitle(title) {
+    if (lang === 'es') return title;
+    return translations.posTitles[title] || title;
+  }
+
+  function translatePosDesc(text) {
+    if (lang === 'es' || !text) return text;
+    return text
+      .replace(/Unificar/g, 'Unify').replace(/automatizar/g, 'automate')
+      .replace(/predecir/g, 'forecast').replace(/identificar/g, 'identify')
+      .replace(/Manejar/g, 'Manage').replace(/negociar/g, 'negotiate')
+      .replace(/liderar/g, 'lead').replace(/Liderar/g, 'Lead')
+      .replace(/Reducir/g, 'Reduce').replace(/crear/g, 'create')
+      .replace(/analizar/g, 'analyze').replace(/diseñar/g, 'design')
+      .replace(/Diseñar/g, 'Design').replace(/Desarrollar/g, 'Develop')
+      .replace(/construir/g, 'build').replace(/Administrar/g, 'Manage')
+      .replace(/optimizar/g, 'optimize').replace(/nuevas cuentas/g, 'new accounts')
+      .replace(/clientes/g, 'clients').replace(/equipo/g, 'team')
+      .replace(/procesos/g, 'processes').replace(/flujos/g, 'workflows')
+      .replace(/ingresos/g, 'revenue');
+  }
 
   // ── THEME ───────────────────────────────────────────────
   function toggleTheme() {
@@ -884,12 +968,13 @@
                           nb.includes('En Desarrollo') ? 'badge-amber' : 'badge-muted';
         const potBadge  = nb.includes('Alto Potencial') ? 'badge-accent' :
                           nb.includes('Potencial Moderado') ? 'badge-muted' : 'badge-amber';
-        const perfLabel = nb.split('/')[0]?.trim() || '';
-        const potLabel  = nb.split('/')[1]?.trim() || '';
+        const perfLabel = translateNineBox(nb).split('/')[0]?.trim() || '';
+        const potLabel  = translateNineBox(nb).split('/')[1]?.trim() || '';
+        const displayRole = translateRole(e.role_title);
 
         return `<div class="card" onclick="cardClick('${e.name}', 'employee')">
           <div class="card-name">${e.name}</div>
-          <div class="card-role">${e.role_title}</div>
+          <div class="card-role">${displayRole}</div>
           <div class="card-badges">
             ${perfLabel ? `<span class="badge ${perfBadge}">${perfLabel}</span>` : ''}
             ${potLabel  ? `<span class="badge ${potBadge}">${potLabel}</span>` : ''}
@@ -916,10 +1001,12 @@
 
       grid.innerHTML = filtered.map(p => {
         const area = inferArea(p.title);
+        const displayTitle = translatePosTitle(p.title);
+        const displayDesc  = translatePosDesc(p.responsibilities || '');
         return `<div class="pos-card" onclick="cardClick('${p.title}', 'position')">
           <div class="pos-area">${area}</div>
-          <div class="pos-title">${p.title}</div>
-          <div class="pos-desc">${p.responsibilities || ''}</div>
+          <div class="pos-title">${displayTitle}</div>
+          <div class="pos-desc">${displayDesc}</div>
         </div>`;
       }).join('');
     }
