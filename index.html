@@ -725,7 +725,7 @@
 <script>
   // ── CONFIG ──────────────────────────────────────────────
   const SUPABASE_URL  = 'https://mtwkdvxhhvncqmeufswe.supabase.co';
-  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10d2tkdnhoaHZuY3FtZXVmc3dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzEyOTQsImV4cCI6MjA5NzQwNzI5NH0.R0Rw5_ypZCntlf8iLl2pNEVR3YdEtfl6zBaoFKOVVEE';
+  const SUPABASE_KEY  = 'YOUR_ANON_KEY_HERE';
   const WEBHOOK_URL   = 'https://christian-rojas.app.n8n.cloud/webhook/talent-mobility-agent';
 
   // ── STATE ───────────────────────────────────────────────
@@ -843,21 +843,32 @@
     return translations.posTitles[title] || title;
   }
 
-  function translatePosDesc(text) {
+  const posDescEN = {
+    'Revenue Operations Manager':
+      'Unify Sales and CS processes; automate CRM workflows; forecast revenue from data; identify conversion bottlenecks; report key metrics to commercial leadership.',
+    'Enterprise Account Executive':
+      'Manage complex sales cycles (+6 months); negotiate multi-year contracts with C-Level; lead RFPs; orchestrate internal resources for custom demonstrations.',
+    'Sales Enablement Lead':
+      'Reduce ramp-up time for new SDRs and AEs; create sales playbooks; analyze call recordings for coaching; design continuous training programs; measure training impact on business metrics.',
+    'Technical Implementation Manager':
+      'Lead software deployment for new accounts; ensure Time-to-Value; resolve technical integration issues; translate requirements between client and Product; manage complex implementation timelines.',
+    'Demand Generation Specialist':
+      'Design creative outbound prospecting campaigns; write cold email sequences; run A/B tests; manage Social Selling channels; analyze conversion metrics and continuously optimize.',
+    'Director of Customer Success':
+      'Lead the full Customer Success area; define retention and expansion strategy; manage CS Manager team; report NRR and Churn at director level; design scalable portfolio management processes.',
+    'Business Development Representative Lead':
+      'Lead a team of Outbound SDRs; define prospecting strategies by segment; analyze funnel metrics and propose improvements; coach individually and in groups; collaborate with Marketing.',
+    'Senior Customer Success Manager':
+      'Manage a portfolio of high-value Enterprise accounts; execute QBRs and EBRs with C-Level; identify and execute expansion opportunities; act as the voice of the customer internally.',
+    'Product Marketing Manager':
+      'Develop product positioning and messaging; create sales and enablement materials; analyze competition; collaborate with Product on launches; design the value narrative for each customer segment.',
+    'RevOps Senior Analyst':
+      'Administer and optimize the revenue technology stack; build executive dashboards; model sales and CS processes; ensure CRM data quality; automate reports and critical workflows.',
+  };
+
+  function translatePosDesc(title, text) {
     if (lang === 'es' || !text) return text;
-    return text
-      .replace(/Unificar/g, 'Unify').replace(/automatizar/g, 'automate')
-      .replace(/predecir/g, 'forecast').replace(/identificar/g, 'identify')
-      .replace(/Manejar/g, 'Manage').replace(/negociar/g, 'negotiate')
-      .replace(/liderar/g, 'lead').replace(/Liderar/g, 'Lead')
-      .replace(/Reducir/g, 'Reduce').replace(/crear/g, 'create')
-      .replace(/analizar/g, 'analyze').replace(/diseñar/g, 'design')
-      .replace(/Diseñar/g, 'Design').replace(/Desarrollar/g, 'Develop')
-      .replace(/construir/g, 'build').replace(/Administrar/g, 'Manage')
-      .replace(/optimizar/g, 'optimize').replace(/nuevas cuentas/g, 'new accounts')
-      .replace(/clientes/g, 'clients').replace(/equipo/g, 'team')
-      .replace(/procesos/g, 'processes').replace(/flujos/g, 'workflows')
-      .replace(/ingresos/g, 'revenue');
+    return posDescEN[title] || text;
   }
 
   // ── THEME ───────────────────────────────────────────────
@@ -1002,7 +1013,7 @@
       grid.innerHTML = filtered.map(p => {
         const area = inferArea(p.title);
         const displayTitle = translatePosTitle(p.title);
-        const displayDesc  = translatePosDesc(p.responsibilities || '');
+        const displayDesc  = translatePosDesc(p.title, p.responsibilities || '');
         return `<div class="pos-card" onclick="cardClick('${p.title}', 'position')">
           <div class="pos-area">${area}</div>
           <div class="pos-title">${displayTitle}</div>
